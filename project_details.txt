@@ -1,0 +1,17 @@
+
+AWS Console Login Details
+Account ID : 448049828955
+username   : HDFCHackathonUser4
+pass       : P@ss+HacathonUsers4
+
+
+
+
+Database 
+Name : shikhardb
+MYshikhardb#7890
+
+MyDBUser
+
+
+GIT HUB : NewHack#7890
