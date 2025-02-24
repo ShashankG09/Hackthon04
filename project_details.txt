@@ -8,10 +8,17 @@ pass       : P@ss+HacathonUsers4
 
 
 Database 
-Name : shikhardb
-MYshikhardb#7890
+cluster ID : ShikharAIDB
+Master : postgres
 
-MyDBUser
+Pass  : MYshikhardb#7890
+
+Master username
+postgres
+Master password
+MYshikhardb#7890
+Endpoint
+shikharaidb.cluster-cvgy44gkw4fv.us-east-1.rds.amazonaws.com
 
 
 GIT HUB : NewHack#7890
