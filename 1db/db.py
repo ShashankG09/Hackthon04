@@ -44,9 +44,9 @@ send_email(sender_email, receiver_email, subject, body, sender_password)
 import psycopg2
 
 # Define the connection parameters
-host = "database-1.cluster-ro-cvgy44gkw4fv.us-east-1.rds.amazonaws.com"
-dbname = "database-1"
-user = "shikhardb"
+host = "shikharaidb.cluster-cvgy44gkw4fv.us-east-1.rds.amazonaws.com"
+dbname = "shikharaidb"
+user = "postgres"
 password = "MYshikhardb#7890"
 port = "5432"  # default is 5432
 
