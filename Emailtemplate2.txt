@@ -1,0 +1,8 @@
+From:branchuser@hdfcbank.com
+To:support@hdfbcank.com,dbquery@hdfcbank.com, parveen@hdfcbank.com
+Subject: transaction not processed
+
+The transaction is not processed. Kindly let me know the status of the transaction.
+Client name: abcd co 
+Amount:100000
+RRN: 503513418556

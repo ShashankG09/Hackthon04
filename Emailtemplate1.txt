@@ -1,0 +1,10 @@
+From:vidhi@nsdl.co.in
+To:support@hdfbcank.com, manoj.karekar@hdfcbank.com
+Subject: imps transaction got declined
+
+Kindly take up to get the reason why IMPS transaction got declined
+
+Decline transaction through IMPS.
+IMPS RRN :        503614318446
+Amount:             Rs 11,000
+Date:                   05.02.2025

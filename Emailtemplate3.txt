@@ -1,0 +1,8 @@
+From:customer1@gmail.com
+To:dbquery@hdfcbank.com, shashank@hdfcbank.com
+Subject: alert not received
+
+Hi, 
+I have received a credit of Rs 25000 in my account however there was no alert received on my mobile phone. I am registered for alerts to be received for my account.
+Amount 25000
+Mobile number 9876543210
