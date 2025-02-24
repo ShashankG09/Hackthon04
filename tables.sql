@@ -1,91 +1,52 @@
+drop table email_data;
+
 CREATE TABLE email_data (
     id SERIAL PRIMARY KEY,
     sender VARCHAR(255),
+    subject VARCHAR(255),
     recipient VARCHAR(255),
     body TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	isaddressed BOOLEAN
+	isaddressed VARCHAR(30),
+	response_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	
 );
+commit;
 
+CREATE TABLE tran_config (
+    id SERIAL PRIMARY KEY,  -- automatically increments
+    application_name VARCHAR(30),
+    spoc_Detail VARCHAR(300)
+);
+commit;
+
+
+INSERT INTO tran_config (application_name, spoc_Detail) VALUES
+('IMPS', 'impssupport@example.com,as');
+INSERT INTO tran_config (application_name, spoc_Detail) VALUES('NEFT', 'shashank.goswami9@gmail.com');
+INSERT INTO tran_config (application_name, spoc_Detail) VALUES('RTGS', 'rajkumar@example.com');
+INSERT INTO tran_config (application_name, spoc_Detail) VALUES('UPI', 'amit.sharma@example.com');
 
 
 
 
 CREATE TABLE transaction_details (
-    id SERIAL,
+    id SERIAL PRIMARY KEY, 
     application_name VARCHAR(20),
-    transaction_id integer PRIMARY KEY,
-    customer_id VARCHAR(255),
+    transaction_id INTEGER NOT NULL,
     transaction_Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	Status text,
-	SMS_STATUS VARCHAR(255),
-	nextstep_email VARCHAR(255)
+    transaction_amount INTEGER,
+    Status VARCHAR(20),
+    Remarks TEXT, 
+    Alert_STATUS VARCHAR(255),
+    nextstep_email INTEGER, 
+    CONSTRAINT fk_nextstep_email FOREIGN KEY (nextstep_email) 
+    REFERENCES tran_config(id)
 );
 
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES
-('IMPS', 48754893, '3821932', '2025-02-01 12:01:00', 'Completed & SMS Sent', 'Delivered','NONE');
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES
-('IMPS', 43283210, '2232322', '2025-02-10 22:21:00', 'Completed & SMS Sent', 'Delivered','NONE');
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES
-('IMPS', 43223219, '19878292', '2025-02-15 04:21:00', 'Completed', 'Failed Due to Phonenumber not matched with CBS. Please connect with Branch Team','shashank.goswami9@gmail.com');
-
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES('IMPS', 40983920, '3421', '2025-02-19 14:31:00', 'Failed. Multiple account linked with mobilenumber', 'Failed','shashank.goswami9@gmail.com');
-
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES('IMPS', 43892012, '867812', '2025-02-12 15:01:00', 'Completed & SMS Sent', 'Delivered','NONE');
-
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES
-('NEFT', 68754893, '3821932', '2025-02-01 12:01:00', 'Completed & SMS Sent', 'Delivered','NONE');
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES
-('NEFT', 63283210, '2232322', '2025-02-10 22:21:00', 'Completed & SMS Sent', 'Delivered','NONE');
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES
-('NEFT', 63223219, '19878292', '2025-02-15 04:21:00', 'Completed', 'Failed Due to Phonenumber not matched with CBS. Please connect with Branch Team','shashank.goswami9@gmail.com');
-
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES('NEFT', 60983920, '3421', '2025-02-19 14:31:00', 'Failed. Multiple account linked with mobilenumber', 'Failed','shashank.goswami9@gmail.com');
-
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES('NEFT', 63892012, '867812', '2025-02-12 15:01:00', 'Completed & SMS Sent', 'Delivered','NONE');
-
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES
-('RTGS', 28754893, '3821932', '2025-02-01 12:01:00', 'Completed & SMS Sent', 'Delivered','NONE');
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES
-('RTGS', 23283210, '2232322', '2025-02-10 22:21:00', 'Completed & SMS Sent', 'Delivered','NONE');
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES
-('RTGS', 23223219, '19878292', '2025-02-15 04:21:00', 'Completed', 'Failed Due to Phonenumber not matched with CBS. Please connect with Branch Team','shashank.goswami9@gmail.com');
-
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES('RTGS', 20983920, '3421', '2025-02-19 14:31:00', 'Failed. High Memo on Account', 'Failed','shashank.goswami9@gmail.com');
-
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES('RTGS', 23892012, '867812', '2025-02-12 15:01:00', 'Completed & SMS Sent', 'Delivered','NONE');
-
-select * from transaction_details;
-
-INSERT INTO transaction_details (application_name, transaction_id, customer_id, transaction_date, status, sms_status, nextstep_email)
-VALUES
-('IMPS', 48754893, '3821932', '2025-02-01 12:01:00', 'Completed & SMS Sent', 'Delivered'),
-('IMPS', 43283210, '2232322', '2025-02-10 22:21:00', 'Completed & SMS Sent', 'Delivered'),
-('IMPS', 43223219, '19878292', '2025-02-15 04:21:00', 'Completed', 'Failed Due to Phonenumber not matched with CBS. Please connect with Branch Team','shashank.goswami9@gmail.com'),
-('IMPS', 40983920, '3421', '2025-02-19 14:31:00', 'Failed. Multiple account linked with mobilenumber', 'Failed','shashank.goswami9@gmail.com'),
-('IMPS', 43892012, '867812', '2025-02-12 15:01:00', 'Completed & SMS Sent', 'Delivered'),
-
-('NEFT', 1002, 'CUST002', '2025-02-22 13:15:00', 'Pending', 'Failed Due to Phonenumber not matched to '),
-('RTGS', 1003, 'CUST003', '2025-02-22 14:20:00', 'Completed', 'Delivered'),
-('AXIOM', 1004, 'CUST004', '2025-02-22 15:25:00', 'Failed', 'Delivered'),
-('IMPS', 1005, 'CUST005', '2025-02-22 16:30:00', 'Completed', 'Pending'),
-('SMS ALERT', 1006, 'CUST006', '2025-02-22 17:35:00', 'Pending', 'Failed'),
-('NEFT', 1007, 'CUST007', '2025-02-22 18:40:00', 'Completed', 'Delivered'),
-('RTGS', 1008, 'CUST008', '2025-02-22 19:45:00', 'Failed', 'Delivered'),
-('AXIOM', 1009, 'CUST009', '2025-02-22 20:50:00', 'Completed', 'Pending'),
-('SMS ALERT', 1010, 'CUST010', '2025-02-22 21:55:00', 'Pending', 'Failed');
+-- Insert sample data into transaction_details table
+INSERT INTO transaction_details (application_name, transaction_id, transaction_amount, Status, Remarks, Alert_STATUS, nextstep_email) VALUES
+('IMPS', 1001, 5000, 'Completed', 'Transaction successful', 'Success', 1),
+('NEFT', 1002, 15000, 'Pending', 'Transaction initiated', 'Pending', 2),
+('RTGS', 1003, 500000, 'Completed', 'Transaction successful', 'Success', 3),
+('UPI', 1004, 3000, 'Failed', 'Insufficient balance', 'Failure', 4);
