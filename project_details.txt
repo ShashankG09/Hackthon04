@@ -22,3 +22,5 @@ shikharaidb.cluster-cvgy44gkw4fv.us-east-1.rds.amazonaws.com
 
 
 GIT HUB : NewHack#7890
+
+https://docs.aws.amazon.com/lambda/latest/dg/python-package.html
