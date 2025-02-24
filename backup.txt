@@ -1,0 +1,233 @@
+import json
+import psycopg2
+import os
+from datetime import datetime
+import boto3
+import logging
+import email
+from email import policy
+from email.parser import BytesParser
+import re
+from botocore.exceptions import ClientError
+
+# Initialize the SES client
+ses_client = boto3.client('ses', region_name='us-east-1')  # Replace with your SES region
+# Set up logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# Initialize the S3 client
+s3_client = boto3.client('s3')
+
+def lambda_handler(event, context):
+    """
+    AWS Lambda handler to insert data into the email_data table by calling insert_email_data function.
+
+    :param event: The input data containing email information (sender, subject, recipient, etc.)
+    :param context: Lambda context object (not used in this case)
+    :return: Response object indicating success or failure
+    """
+    # Extract the S3 bucket name and the uploaded file name from the event
+    bucket_name = event['Records'][0]['s3']['bucket']['name']
+    object_key = event['Records'][0]['s3']['object']['key']
+
+    # Log the details of the incoming event
+    logger.info(f"Received file {object_key} from bucket {bucket_name}.")
+
+    try:
+        # Get the latest file from the S3 bucket
+        response = s3_client.get_object(Bucket=bucket_name, Key=object_key)
+
+        # Read the file content (email content in text format)
+        email_content = response['Body'].read().decode('utf-8')
+
+        # Parse the email content
+        msg = BytesParser(policy=policy.default).parsebytes(email_content.encode('utf-8'))
+
+        # Extract sender, recipient, and body
+        sender = msg.get('From')
+        recipient = msg.get('To')
+        subject = msg.get('Subject')
+        body = None
+
+        # Try to get the email body
+        if msg.is_multipart():
+            # Iterate through the parts of the email
+            for part in msg.iter_parts():
+                if part.get_content_type() == 'text/plain':
+                    # Check if charset is available, otherwise use default
+                    charset = part.get_content_charset() or 'utf-8'
+                    body = part.get_payload(decode=True).decode(charset)
+                    break
+        else:
+            # If not multipart, just get the payload as body
+            charset = msg.get_content_charset() or 'utf-8'
+            body = msg.get_payload(decode=True).decode(charset)
+
+        # Log the extracted details
+        logger.info(f"Email Sender: {sender}")
+        logger.info(f"Email Recipient: {recipient}")
+        logger.info(f"Email Subject: {subject}")
+        logger.info(f"Email Body: {body[:200]}...")  # Print the first 200 characters of the body for log
+
+        # Call the insert_email_data function with the extracted data
+        logger.info(f"Calling insert_email_data function")
+        result = insert_email_data(sender, subject, recipient, body, "Pending")
+
+        # Return the response
+        return {
+            'statusCode': 200 if "success" in result.lower() else 500,
+            'body': json.dumps(result)
+        }
+
+    except Exception as e:
+        # Log any errors
+        logger.error(f"Error processing the email: {str(e)}")
+
+        return {
+            'statusCode': 500,
+            'body': json.dumps(f"Error processing the email: {str(e)}")
+        }
+
+def insert_email_data(sender, subject, recipient, body, isaddressed):
+    """
+    Reusable function to insert data into the email_data table and make a POST API call.
+
+    :param sender: Email sender
+    :param subject: Email subject
+    :param recipient: Email recipient
+    :param body: Email body
+    :param isaddressed: Flag for whether the email is addressed
+    :return: Success message or error message
+    """
+    # Fetch database credentials from environment variables
+    db_host = os.environ.get('DB_HOST', 'shikharaidb.cluster-cvgy44gkw4fv.us-east-1.rds.amazonaws.com')
+    db_name = os.environ.get('DB_NAME', 'postgres')
+    db_user = os.environ.get('DB_USER', 'postgres')
+    db_password = os.environ.get('DB_PASSWORD', 'MYshikhardb#7890')
+    db_port = os.environ.get('DB_PORT', '5432')
+
+    # Get current timestamp for 'created_at' and 'response_date'
+    created_at = datetime.now()
+    response_date = datetime.now()
+
+    try:
+        # Establish the connection to the PostgreSQL database
+        conn = psycopg2.connect(
+            dbname=db_name,
+            user=db_user,
+            password=db_password,
+            host=db_host,
+            port=db_port
+        )
+
+        # Create a cursor object
+        cursor = conn.cursor()
+        logger.info(f"Connection successful to the database")
+
+        # Define the insert query
+        insert_query = """
+            INSERT INTO email_data (sender, subject, recipient, body, created_at, isaddressed, response_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+
+        # Execute the insert query
+        cursor.execute(insert_query, (sender, subject, recipient, body, created_at, isaddressed, response_date))
+
+        # Commit the transaction
+        conn.commit()
+
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
+
+        # Test input text for extracting details
+        text = body
+        #"Please share the transaction status of my RRN 32183021. Amount is 382901. and Date is 23-01-2025"
+
+        # Extract transaction details
+        transaction_details = extract_transaction_details(text)
+
+        # Log the result
+        logger.info(f"Transaction details extracted: {transaction_details}")
+        send_email(subject, body, 'shashank.goswami9@gmail.com')
+        return "Data inserted successfully!"
+
+    except Exception as e:
+        # Handle any exceptions
+        logger.error(f"Error inserting data or making API call: {str(e)}")
+        return f"Error inserting data or making API call: {str(e)}"
+
+def extract_transaction_details(text):
+    """
+    Function to extract RRN, amount, and date from a given text.
+
+    :param text: The input text containing RRN, amount, and date
+    :return: A dictionary with RRN, amount, and date
+    """
+    # Regular expression patterns for extracting RRN, amount, and date
+    rrn_pattern = r"RRN\s*(\d+)"  # Looks for RRN followed by digits
+    amount_pattern = r"Amount\s*is\s*(\d+)"  # Looks for Amount followed by digits
+    date_pattern = r"Date\s*is\s*(\d{2}-\d{2}-\d{4})"  # Looks for Date in the format DD-MM-YYYY
+    
+    # Extract RRN, amount, and date using regular expressions
+    rrn = re.search(rrn_pattern, text)
+    amount = re.search(amount_pattern, text)
+    date = re.search(date_pattern, text)
+    
+    # Create a result dictionary
+    result = {
+        'rrn': rrn.group(1) if rrn else None,
+        'amount': amount.group(1) if amount else None,
+        'date': date.group(1) if date else None
+    }
+    
+    return result
+def send_email(subject, body, recipient_email):
+    """
+    Sends an email to the customer using SES.
+    
+    :param subject: The subject of the email.
+    :param body: The body of the email.
+    :param recipient_email: The recipient's email address.
+    """
+    # Sender email address (must be verified with SES)
+    sender_email = 'shashank.goswami9@gmail.com'  # Replace with your SES-verified email
+
+    # Email content (HTML or text format)
+    email_body = f"""
+    <html>
+        <head></head>
+        <body>
+            <h1>{subject}</h1>
+            <p>{body}</p>
+        </body>
+    </html>
+    """
+    
+    # Send email using SES
+    try:
+        response = ses_client.send_email(
+            Source=sender_email,
+            Destination={
+                'ToAddresses': [recipient_email],
+            },
+            Message={
+                'Subject': {
+                    'Data': subject,
+                },
+                'Body': {
+                    'Html': {
+                        'Data': email_body,
+                    }
+                }
+            }
+        )
+        # Log the response from SES (for debugging purposes)
+        print(f"Email sent! Message ID: {response['MessageId']}")
+        return response
+
+    except ClientError as e:
+        # Handle any errors that occur during sending email
+        print(f"Error sending email: {e.response['Error']['Message']}")
+        return None
